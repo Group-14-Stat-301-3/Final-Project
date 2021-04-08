@@ -16,3 +16,8 @@ http://bit.ly/JordiParryProjectDataMLB
 
 # Project Timeline
 We plan to load in and clean the data in the next week and to begin our EDA right away once the data is in. After the EDA due date, we plan to get to work on building models and tuning parameters.
+
+# Research Question
+Can we predict a player's on-base plus slugging using his advanced metrics? This is a predictive question and one that is best answered using a regression-based approach.
+
+The response variable is `on_base_plus_slg`, which is the player's on-base percentage plus his slugging percentage. It's usually used as a representation for a player's overall batting performance. Some variables we expect to be useful in modeling the response are the player's age, average exit velocity, and launch angle.
