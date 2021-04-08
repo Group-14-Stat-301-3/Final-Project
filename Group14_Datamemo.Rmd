@@ -1,0 +1,15 @@
+---
+title: "Group 14 Data Memo"
+author: "Jordi Parry, Albert Kim, Zachary Kornbluth"
+date: "4/8/2021"
+output: html_document
+---
+
+# Data Source
+For this project, we will be using a table of data from the 2019 and 2020 Major League Baseball regular seasons. This dataset is what Jordi used for his 301-1 final project in the fall.
+This data will contain the season data of every player who had at least 100 plate appearances in the 2019 season and every player who had at least 100 plate appearances in the 2020 season.
+All of the columns will be for batting statistics, other than the players names and ages.  These batting statistics will include the number of plate appearances the player had in the season, the more mainstream statistic OPS (on base plus slugging), and numerous other more advanced statistics dealing with the hitters' expected outcomes, how hard they hit the ball, at what angle they hit the ball, and how often they swing, miss, and make contact in and outside of the strike zone.
+This data is obtained from the website Baseball Savant, found at https://baseballsavant.mlb.com/
+
+The specific "custom leaderboard" I plan to use to pull this data is found at 
+http://bit.ly/JordiParryProjectDataMLB
