@@ -11,5 +11,8 @@ This data will contain the season data of every player who had at least 100 plat
 All of the columns will be for batting statistics, other than the players names and ages.  These batting statistics will include the number of plate appearances the player had in the season, the more mainstream statistic OPS (on base plus slugging), and numerous other more advanced statistics dealing with the hitters' expected outcomes, how hard they hit the ball, at what angle they hit the ball, and how often they swing, miss, and make contact in and outside of the strike zone.
 This data is obtained from the website Baseball Savant, found at https://baseballsavant.mlb.com/
 
-The specific "custom leaderboard" I plan to use to pull this data is found at 
+The specific "custom leaderboard" we plan to use to pull this data is found at 
 http://bit.ly/JordiParryProjectDataMLB
+
+# Project Timeline
+We plan to load in and clean the data in the next week and to begin our EDA right away once the data is in. After the EDA due date, we plan to get to work on building models and tuning parameters.
