@@ -6,15 +6,12 @@ output: html_document
 ---
 
 # Data Source
-For this project, we will be using the 2019-2020 Major League Baseball Regular Season dataset containing batting statistics for players with at least 100 plate appearances for both years. 
-Specifically, predictors within this dataset vary from measures of physical strength such as sprint speed and arm strength, batting statistics such as plate appearances, on base plus slugging 
-percentages, and player information such as age and name. This data is obtained from the website Baseball Savant, found at https://baseballsavant.mlb.com/. This dataset is what Jordi used for 
-his 301-1 final project in the fall. 
+For this project, we will be using the 2019-2020 Major League Baseball Regular Season dataset containing batting statistics for players with at least 100 plate appearances for both years. Specifically, predictors within this dataset vary from measures of physical strength such as sprint speed and arm strength, batting statistics such as plate appearances, on base plus slugging percentages, and player information such as age and name. This data is obtained from the website Baseball Savant, found at https://baseballsavant.mlb.com/. This dataset is what Jordi used for his 301-1 final project in the fall. 
 
 The specific "custom leaderboard" we plan to use to pull this data is found at http://bit.ly/JordiParryProjectDataMLB
 
 # Project Timeline
-We plan to load in and clean the data in the next week and to begin our EDA right away once the data is in. After the EDA due date, we plan to get to work on building models and tuning parameters.
+We plan to load, process, and clean the data within the next week in order to begin the EDA for the dataset. Once the EDA is completed by the specified due date, the rest of the time for the quarter will be used to build models and fine tune hyperparameters with the goal of achieveing the lowest RMSE score possible for our outcome variable.
 
 # Research Question
 Can we predict a player's on-base plus slugging using his advanced metrics? This is a predictive question and one that is best answered using a regression-based approach.
