@@ -1802,52 +1802,27 @@ summary {
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KHRpZHltb2RlbHMpXG5cbm1sYl9kYXRhIDwtIHJlYWQudGFibGUoJ21sYl9kYXRhLnR4dCcsIGhlYWRlciA9IFRSVUUsIHNlcCA9IFwiIFwiKSAlPiVcbiAgc3Vic2V0KHNlbGVjdCA9IC1jKG5hbWUsIHllYXIsIGJfdG90YWxfcGEsIHhvcHMsIHhiYSwgeHNsZywgeHdvYmEsIHhvYnAsIHhpc28pKVxuXG5zZXQuc2VlZCgxMjMpXG5cbm1sYl9zcGxpdCA8LSBpbml0aWFsX3NwbGl0KG1sYl9kYXRhLCAwLjc1LCBzdHJhdGEgPSBvcHMpXG5cbnRyYWluaW5nX21sYiA8LSB0cmFpbmluZyhtbGJfc3BsaXQpXG50ZXN0aW5nX21sYiA8LSB0ZXN0aW5nKG1sYl9zcGxpdClcblxud3JpdGVfY3N2KHRyYWluaW5nX21sYiwgXCJ0cmFpbmluZ19kYXRhX21sYi5jc3ZcIilcbmBgYCJ9 -->
+<pre class="r"><code>library(tidyverse)
+library(tidymodels)
+
+mlb_data &lt;- read.table(&#39;mlb_data.txt&#39;, header = TRUE, sep = &quot; &quot;) %&gt;%
+  subset(select = -c(name, year, b_total_pa, xops, xba, xslg, xwoba, xobp, xiso))
+
+set.seed(123)
+
+mlb_split &lt;- initial_split(mlb_data, 0.75, strata = ops)
+
+training_mlb &lt;- training(mlb_split)
+testing_mlb &lt;- testing(mlb_split)
+
+write_csv(training_mlb, &quot;training_data_mlb.csv&quot;)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSCRdGlkeXZlcnNlkiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDQuMC4zUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxuLS0gQXR0YWNoaW5nIHBhY2thZ2VzIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHRpZHl2ZXJzZSAxLjMuMCAtLVxudiBnZ3Bsb3QyIDMuMy4yICAgICB2IHB1cnJyICAgMC4zLjRcbnYgdGliYmxlICAzLjAuNCAgICAgdiBkcGx5ciAgIDEuMC4yXG52IHRpZHlyICAgMS4xLjIgICAgIHYgc3RyaW5nciAxLjQuMFxudiByZWFkciAgIDEuNC4wICAgICB2IGZvcmNhdHMgMC41LjBcbnBhY2thZ2UgkWdncGxvdDKSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJF0aWJibGWSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJF0aWR5cpIgd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkXJlYWRykiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDQuMC4zcGFja2FnZSCRcHVycnKSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJFkcGx5cpIgd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkXN0cmluZ3KSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJFmb3JjYXRzkiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDQuMC4zLS0gQ29uZmxpY3RzIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHRpZHl2ZXJzZV9jb25mbGljdHMoKSAtLVxueCBkcGx5cjo6ZmlsdGVyKCkgbWFza3Mgc3RhdHM6OmZpbHRlcigpXG54IGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbiJ9 -->
-<pre><code>package 㤼㸱tidyverse㤼㸲 was built under R version 4.0.3Registered S3 methods overwritten by &#39;dbplyr&#39;:
-  method         from
-  print.tbl_lazy     
-  print.tbl_sql      
--- Attaching packages ----------------------------------------------------------------------------------------------------------- tidyverse 1.3.0 --
-v ggplot2 3.3.2     v purrr   0.3.4
-v tibble  3.0.4     v dplyr   1.0.2
-v tidyr   1.1.2     v stringr 1.4.0
-v readr   1.4.0     v forcats 0.5.0
-package 㤼㸱ggplot2㤼㸲 was built under R version 4.0.3package 㤼㸱tibble㤼㸲 was built under R version 4.0.3package 㤼㸱tidyr㤼㸲 was built under R version 4.0.3package 㤼㸱readr㤼㸲 was built under R version 4.0.3package 㤼㸱purrr㤼㸲 was built under R version 4.0.3package 㤼㸱dplyr㤼㸲 was built under R version 4.0.3package 㤼㸱stringr㤼㸲 was built under R version 4.0.3package 㤼㸱forcats㤼㸲 was built under R version 4.0.3-- Conflicts -------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
-x dplyr::filter() masks stats::filter()
-x dplyr::lag()    masks stats::lag()</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5bW9kZWxzKVxuYGBgIn0= -->
-<pre class="r"><code>library(tidymodels)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoicGFja2FnZSCRdGlkeW1vZGVsc5Igd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuMy0tIEF0dGFjaGluZyBwYWNrYWdlcyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHRpZHltb2RlbHMgMC4xLjIgLS1cbnYgYnJvb20gICAgIDAuNy4zICAgICAgdiByZWNpcGVzICAgMC4xLjE1XG52IGRpYWxzICAgICAwLjAuOSAgICAgIHYgcnNhbXBsZSAgIDAuMC44IFxudiBpbmZlciAgICAgMC41LjQgICAgICB2IHR1bmUgICAgICAwLjEuMiBcbnYgbW9kZWxkYXRhIDAuMS4wICAgICAgdiB3b3JrZmxvd3MgMC4yLjEgXG52IHBhcnNuaXAgICAwLjEuNSAgICAgIHYgeWFyZHN0aWNrIDAuMC43IFxucGFja2FnZSCRYnJvb22SIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJFkaWFsc5Igd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkXNjYWxlc5Igd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkW1vZGVsZGF0YZIgd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkXBhcnNuaXCSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJFyZWNpcGVzkiB3YXMgYnVpbHQgdW5kZXIgUiB2ZXJzaW9uIDQuMC4zcGFja2FnZSCRcnNhbXBsZZIgd2FzIGJ1aWx0IHVuZGVyIFIgdmVyc2lvbiA0LjAuM3BhY2thZ2UgkXR1bmWSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJF3b3JrZmxvd3OSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjNwYWNrYWdlIJF5YXJkc3RpY2uSIHdhcyBidWlsdCB1bmRlciBSIHZlcnNpb24gNC4wLjMtLSBDb25mbGljdHMgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSB0aWR5bW9kZWxzX2NvbmZsaWN0cygpIC0tXG54IHNjYWxlczo6ZGlzY2FyZCgpIG1hc2tzIHB1cnJyOjpkaXNjYXJkKClcbnggZHBseXI6OmZpbHRlcigpICAgbWFza3Mgc3RhdHM6OmZpbHRlcigpXG54IHJlY2lwZXM6OmZpeGVkKCkgIG1hc2tzIHN0cmluZ3I6OmZpeGVkKClcbnggZHBseXI6OmxhZygpICAgICAgbWFza3Mgc3RhdHM6OmxhZygpXG54IHlhcmRzdGljazo6c3BlYygpIG1hc2tzIHJlYWRyOjpzcGVjKClcbnggcmVjaXBlczo6c3RlcCgpICAgbWFza3Mgc3RhdHM6OnN0ZXAoKVxuIn0= -->
-<pre><code>package 㤼㸱tidymodels㤼㸲 was built under R version 4.0.3-- Attaching packages ---------------------------------------------------------------------------------------------------------- tidymodels 0.1.2 --
-v broom     0.7.3      v recipes   0.1.15
-v dials     0.0.9      v rsample   0.0.8 
-v infer     0.5.4      v tune      0.1.2 
-v modeldata 0.1.0      v workflows 0.2.1 
-v parsnip   0.1.5      v yardstick 0.0.7 
-package 㤼㸱broom㤼㸲 was built under R version 4.0.3package 㤼㸱dials㤼㸲 was built under R version 4.0.3package 㤼㸱scales㤼㸲 was built under R version 4.0.3package 㤼㸱modeldata㤼㸲 was built under R version 4.0.3package 㤼㸱parsnip㤼㸲 was built under R version 4.0.3package 㤼㸱recipes㤼㸲 was built under R version 4.0.3package 㤼㸱rsample㤼㸲 was built under R version 4.0.3package 㤼㸱tune㤼㸲 was built under R version 4.0.3package 㤼㸱workflows㤼㸲 was built under R version 4.0.3package 㤼㸱yardstick㤼㸲 was built under R version 4.0.3-- Conflicts ------------------------------------------------------------------------------------------------------------- tidymodels_conflicts() --
-x scales::discard() masks purrr::discard()
-x dplyr::filter()   masks stats::filter()
-x recipes::fixed()  masks stringr::fixed()
-x dplyr::lag()      masks stats::lag()
-x yardstick::spec() masks readr::spec()
-x recipes::step()   masks stats::step()</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWxiX2RhdGEgPC0gcmVhZC50YWJsZSgnbWxiX2RhdGEudHh0JywgaGVhZGVyID0gVFJVRSwgc2VwID0gXCIgXCIpXG5gYGAifQ== -->
-<pre class="r"><code>mlb_data &lt;- read.table(&#39;mlb_data.txt&#39;, header = TRUE, sep = &quot; &quot;)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiY2Fubm90IG9wZW4gZmlsZSAnbWxiX2RhdGEudHh0JzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeUVycm9yIGluIGZpbGUoZmlsZSwgXCJydFwiKSA6IGNhbm5vdCBvcGVuIHRoZSBjb25uZWN0aW9uXG4ifQ== -->
-<pre><code>cannot open file &#39;mlb_data.txt&#39;: No such file or directoryError in file(file, &quot;rt&quot;) : cannot open the connection</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkV4cGxvcmF0b3J5IERhdGEgQW5hbHlzaXMgLSBHcm91cCAxNCINCmF1dGhvcjogIkFsYmVydCBLaW0sIEpvcmRpIFBhcnJ5LCBaYWNoYXJ5IEtvcm5ibHV0aCINCnN1YnRpdGxlOiAiU1RBVCAzMDEtMyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCmBgYHtyfQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpsaWJyYXJ5KHRpZHltb2RlbHMpDQoNCm1sYl9kYXRhIDwtIHJlYWQudGFibGUoJ21sYl9kYXRhLnR4dCcsIGhlYWRlciA9IFRSVUUsIHNlcCA9ICIgIikNCmBgYA0KDQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkV4cGxvcmF0b3J5IERhdGEgQW5hbHlzaXMgLSBHcm91cCAxNCINCmF1dGhvcjogIkFsYmVydCBLaW0sIEpvcmRpIFBhcnJ5LCBaYWNoYXJ5IEtvcm5ibHV0aCINCnN1YnRpdGxlOiAiU1RBVCAzMDEtMyINCm91dHB1dDogaHRtbF9ub3RlYm9vaw0KLS0tDQoNCmBgYHtyfQ0KbGlicmFyeSh0aWR5dmVyc2UpDQpsaWJyYXJ5KHRpZHltb2RlbHMpDQoNCm1sYl9kYXRhIDwtIHJlYWQudGFibGUoJ21sYl9kYXRhLnR4dCcsIGhlYWRlciA9IFRSVUUsIHNlcCA9ICIgIikgJT4lDQogIHN1YnNldChzZWxlY3QgPSAtYyhuYW1lLCB5ZWFyLCBiX3RvdGFsX3BhLCB4b3BzLCB4YmEsIHhzbGcsIHh3b2JhLCB4b2JwLCB4aXNvKSkNCg0Kc2V0LnNlZWQoMTIzKQ0KDQptbGJfc3BsaXQgPC0gaW5pdGlhbF9zcGxpdChtbGJfZGF0YSwgMC43NSwgc3RyYXRhID0gb3BzKQ0KDQp0cmFpbmluZ19tbGIgPC0gdHJhaW5pbmcobWxiX3NwbGl0KQ0KdGVzdGluZ19tbGIgPC0gdGVzdGluZyhtbGJfc3BsaXQpDQoNCndyaXRlX2Nzdih0cmFpbmluZ19tbGIsICJ0cmFpbmluZ19kYXRhX21sYi5jc3YiKQ0KYGBgDQoNCg==</div>
 
 
 

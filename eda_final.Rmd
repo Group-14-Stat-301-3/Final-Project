@@ -9,6 +9,16 @@ output: html_notebook
 library(tidyverse)
 library(tidymodels)
 
-mlb_data <- read.table('mlb_data.txt', header = TRUE, sep = " ")
+mlb_data <- read.table('mlb_data.txt', header = TRUE, sep = " ") %>%
+  subset(select = -c(name, year, b_total_pa, xops, xba, xslg, xwoba, xobp, xiso))
+
+set.seed(123)
+
+mlb_split <- initial_split(mlb_data, 0.75, strata = ops)
+
+training_mlb <- training(mlb_split)
+testing_mlb <- testing(mlb_split)
+
+write_csv(training_mlb, "training_data_mlb.csv")
 ```
 
