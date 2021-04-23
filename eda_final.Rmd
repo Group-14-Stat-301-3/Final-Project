@@ -1,0 +1,14 @@
+---
+title: "Exploratory Data Analysis - Group 14"
+author: "Albert Kim, Jordi Parry, Zachary Kornbluth"
+subtitle: "STAT 301-3"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+
+mlb_data <- read.table('mlb_data.txt', header = TRUE, sep = " ")
+```
+
