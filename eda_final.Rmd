@@ -5,11 +5,15 @@ subtitle: "STAT 301-3"
 output:
   html_document:
     df_print: paged
+    code_folding: hide
 ---
 
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 library(tidymodels)
+library(readr)
+library(ggplot2)
+library(psych)
 
 mlb_data <- read.table('mlb_data.txt', header = TRUE, sep = " ") %>%
   subset(select = -c(name, year, b_total_pa, xops, xba, xslg, xwoba, xobp, xiso))
@@ -24,7 +28,92 @@ testing_mlb <- testing(mlb_split)
 write_csv(training_mlb, "training_data_mlb.csv")
 ```
 
+## Initial Overview of Data
+This dataset consists of batting statistics of MLB player seasons of players with at least 100 plate appearances, in the 2019 and  2020 seasons.
+The data was acquired from the mlb.com site 'Baseball Savant' and its custom leaderboard feature, and then certain features were removed for the purpose of modeling, such as player names and statistics that are used in formulas for other features.
+The total dataset consists of 761 observations or player seasons, and the training dataset consists of 573 player seasons.
+There are 14 features and one response variable, ops or On Base Plus Slugging Percentage.
+Luckily, there is no missingness in this dataset.
+
+## Essential Findings
+
+### Univariate Investigation of ops, the Response Variable
+
 ```{r}
+summary(select(training_mlb, ops))
+describe(training_mlb$ops)
+ggplot(data = training_mlb, aes(x = ops)) +
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(x = "Average Exit Velocity", y = "Count")
+ggplot(data = training_mlb, mapping = aes(x = ops)) +
+  geom_boxplot() +
+  coord_flip()
+ggplot(training_mlb, aes(x = ops)) + 
+  geom_density(fill = "grey60")
+```
+
+The above results and plots help us get a better understanding of our response variable OPS. From the histogram we can see that the variable is fairly normally distributed, centered at around 74-75 without notable skewness. We also see a standard deviation of 12.17, and that the middle half of the Ops' lie between 67 and 82.6.
+
+### Univariate investigation of potential important predictors
+
+First - exit velocity. We'd probably expect the harder a player hits, the more likely they are to 1. get on base and 2. hit for extra bases, which would increase their OPS
+
+```{r}
+training_mlb %>% 
+  ggplot(aes(exit_velocity_avg)) + 
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(x = "Average Exit Velocity", y = "Count")
+```
+
+Here we see a distribution that's slightly left skewed, with a mean and median likely just under 90. We can check those:
+
+```{r}
+training_mlb %>% select(exit_velocity_avg) %>% 
+  summary()
+
+describe(training_mlb$exit_velocity_avg)
+```
+
+Another potential important predictor - launch angle
+Knowing kinematics and projectile motion, in a vacuum we'd expect 45 degrees to be the optimal launch angle. But due to  wind/air resistance (and some domain knowledge we have), the optimal launch angle is likely closer to 20-25 degrees.
+
+```{r}
+training_mlb %>% 
+  ggplot(aes(launch_angle_avg)) + 
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(x = "Average Launch Angle", y = "Count")
+
+training_mlb %>% select(launch_angle_avg) %>% 
+  summary()
+
+describe(training_mlb$launch_angle_avg)
+```
+
+Something that initially surprised me: average launch angles at < 0 degrees. But I realized that ground balls have a launch angle < 0, so the handful of batters below that line are more likely to hit ground balls.
+
+Something less surprising, but probably more informative: very few players average over 20 degree launch angles. 
+
+Notes - we should look at comparisons of both of these across age, as we may see some interesting trends
+
+Final important predictor - hard hit percentage
+We'd expect a player that hits hard more often to have a higher OPS
+
+```{r}
+training_mlb %>% 
+  ggplot(aes(hard_hit_pct)) + 
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(x = "Hard Ht Percentage", y = "Count")
+
+training_mlb %>% select(hard_hit_pct) %>% 
+  summary()
+
+describe(training_mlb$hard_hit_pct)
+```
+
+
+### Important Relationships Between Ops and Predictors and Between Predictors
+
+```{r, message=FALSE}
 # plot all variables by ops, note any irregularities 
 training_mlb %>%
   gather(-c(ops), key = "var", value = "value") %>%
@@ -42,6 +131,16 @@ training_mlb %>%
     labs(x = "Predictor Values", y = "Counts", title = "Distribution of All Predictors")
 
 # check correlations between predictors to see if removal is necessary for any
+library(cowplot)
+
+training_data_mlb <- read_csv('training_data_mlb.csv')
+training_data_mlb %>%
+  gather(-c(ops), key = "var", value = "value") %>%
+  ggplot(aes(x = value, y = ops)) + geom_point() + geom_smooth() + facet_wrap(~var, scales = "free")
+
+training_data_mlb %>%
+  gather(-c(ops), key = "var", value = "value") %>%
+  ggplot(aes(x = value)) + geom_histogram() + facet_wrap(~var, scales = "free")
 knitr::kable(cor(training_data_mlb %>% select(-c(ops))))
 ```
 
@@ -52,3 +151,22 @@ From the first graph, it is evident that some predictors notably b_bb_pct, barre
 On the second graph, the distributions of predictor variables were explored in order to see if any preprocessing would be required prior to the model buildging process. From above, most predictors appear to be relatively symmetric with the exception of b_bb_pct, barrel_batted_rate, launch_angle_avg, and oz_contact_pct. Although not very extreme, it may be useful to apply log transformations or other methods such as Box-Cox or Yeo-Johnson transformations to account for this skewness.
 
 Addressing the correlation table, there appears to be a couple of strong associations between pairs of certain predictors. In particular, iz_contact_pct/z_swing_miss_pct and oz_contact_pct/oz_swing_miss_pct have near one-to-one correlations, which suggest that there is redundant information in these pairs. As such, oz_swing_miss_pct and z_swing_miss_pct will be removed from the data in order to correct potential collinearity issues during the model building process.
+
+
+### Secondary Findings
+
+Some potentiall extraneous predictors that might still have relevance - in zone contact, solid contact, barrels
+
+```{r}
+training_mlb %>% select(iz_contact_pct) %>% 
+  summary()
+
+training_mlb %>% select(solidcontact_pct) %>% 
+  summary()
+
+training_mlb %>% select(barrel_batted_rate) %>% 
+  summary()
+```
+
+
+
