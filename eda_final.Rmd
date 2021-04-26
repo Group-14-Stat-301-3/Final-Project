@@ -155,7 +155,7 @@ Addressing the correlation table, there appears to be a couple of strong associa
 
 ### Secondary Findings
 
-Some potentiall extraneous predictors that might still have relevance - in zone contact, solid contact, barrels
+Some potential extraneous predictors that might still have relevance - in zone contact, solid contact, barrels
 
 ```{r}
 training_mlb %>% select(iz_contact_pct) %>% 
