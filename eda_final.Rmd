@@ -2,7 +2,9 @@
 title: "Exploratory Data Analysis - Group 14"
 author: "Albert Kim, Jordi Parry, Zachary Kornbluth"
 subtitle: "STAT 301-3"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
@@ -22,3 +24,31 @@ testing_mlb <- testing(mlb_split)
 write_csv(training_mlb, "training_data_mlb.csv")
 ```
 
+```{r}
+# plot all variables by ops, note any irregularities 
+training_mlb %>%
+  gather(-c(ops), key = "var", value = "value") %>%
+  ggplot(aes(x = value, y = ops)) + geom_point() + 
+    geom_smooth() + 
+    facet_wrap(~var, scales = "free") +
+    labs(x = "Predictors Values", y = "On-Base Plus Slugging", title = "Outcome Variable OPS by All Predictors")
+
+# get individual distributions of all predictors
+training_mlb %>%
+  gather(-c(ops), key = "var", value = "value") %>%
+  ggplot(aes(x = value)) + 
+    geom_histogram() + 
+    facet_wrap(~var, scales = "free") +
+    labs(x = "Predictor Values", y = "Counts", title = "Distribution of All Predictors")
+
+# check correlations between predictors to see if removal is necessary for any
+knitr::kable(cor(training_data_mlb %>% select(-c(ops))))
+```
+
+Above include two plots that summarize outcome-predictor relationships and predictor distributions respectively as well as a correlation matrix that details all pairwise correlations between predictors. 
+
+From the first graph, it is evident that some predictors notably b_bb_pct, barrel_batted_rate, exit_velocity_avg, and hard_hit_pct have relatively strong associations with the outcome variable. As all of these measures capture different aspects of a player's offensive skill, it is not surprising that they are associated with the OPS outcome variable considering the OPS score is considered as an overall measure of offensive capabilities. On the other hand, other variables such as player age did not have any noticeably associations with the response variable as hypothesized. 
+
+On the second graph, the distributions of predictor variables were explored in order to see if any preprocessing would be required prior to the model buildging process. From above, most predictors appear to be relatively symmetric with the exception of b_bb_pct, barrel_batted_rate, launch_angle_avg, and oz_contact_pct. Although not very extreme, it may be useful to apply log transformations or other methods such as Box-Cox or Yeo-Johnson transformations to account for this skewness.
+
+Addressing the correlation table, there appears to be a couple of strong associations between pairs of certain predictors. In particular, iz_contact_pct/z_swing_miss_pct and oz_contact_pct/oz_swing_miss_pct have near one-to-one correlations, which suggest that there is redundant information in these pairs. As such, oz_swing_miss_pct and z_swing_miss_pct will be removed from the data in order to correct potential collinearity issues during the model building process.
