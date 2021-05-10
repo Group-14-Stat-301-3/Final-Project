@@ -115,7 +115,11 @@ Addressing the correlation plot, there appears to be a couple of strong associat
 
 ### Secondary Findings
 
+<<<<<<< HEAD
 Below contains some additional secondary findings of lesser importance but still nonetheless interesting. 
+=======
+Some potential extraneous predictors that might still have relevance - in zone contact, solid contact, barrels
+>>>>>>> fb52904cb2ac5ceb498def975f056d9489d6f249
 
 One such variable is the average launch angle variable, which describes the angle at which a ball flies upon being hit at bat.
 ```{r}
