@@ -11,7 +11,7 @@ set.seed(2025)
 mlb_folds <- vfold_cv(data = mlb_train, v = 5, repeats = 3, strata = ops)
 mlb_recipe <- recipe(ops ~ ., data = mlb_train) %>%
   step_rm(z_swing_miss_pct, oz_swing_miss_pct) %>%
-  step_log(b_bb_pct, barrel_batted_rate, launch_angle_avg, oz_contact_pct) %>%
+  step_log(b_bb_pct, barrel_batted_rate, oz_contact_pct, offset = 1e-16) %>%
   step_normalize(all_predictors())
 
 # loading stacks and setting control grid
@@ -45,5 +45,11 @@ save(rf_tuned, rf_workflow, file = "rf_tuning.rda")
 
 load("rf_tuning.rda")
 
-mlb_test <- read_csv('test_data_mlb.csv')
+select_best(rf_tuned, metric = "rmse")
+autoplot(rf_tuned, metric = "rmse")
+rf_metrics <- collect_metrics(rf_tuned)
+
+mlb_test <- read_csv('testing_data_mlb.csv')
+
+
 
