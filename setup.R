@@ -11,5 +11,5 @@ set.seed(2025)
 mlb_folds <- vfold_cv(data = mlb_train, v = 5, repeats = 3, strata = ops)
 mlb_recipe <- recipe(ops ~ ., data = mlb_train) %>%
   step_rm(z_swing_miss_pct, oz_swing_miss_pct) %>%
-  step_log(b_bb_pct, barrel_batted_rate, oz_contact_pct) %>%
+  step_log(b_bb_pct, barrel_batted_rate, oz_contact_pct, offset = 1e-16) %>%
   step_normalize(all_predictors())
