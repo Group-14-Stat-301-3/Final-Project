@@ -2140,57 +2140,39 @@ autoplot(mlb_model_stacked)</code></pre>
 <h2>Model Evaluation and Conclusion</h2>
 <p>Now that the best two models have been selected for final evaluation, in this section, the neural network and ensemble model will be evaluated on the testing data set.</p>
 <p>Below contains a script that fits and evaluates the ensemble model as well as its member models:</p>
-<pre class="r"><code># load testing data
+<pre class="r"><code># set seed for reproducible results
+set.seed(9876)
+
+# load testing data
 test_mlb &lt;- read_csv(&quot;data/testing_data_mlb.csv&quot;)
 
 # fit to ensemble to entire training set 
 mlb_model_stacked_fitted &lt;- mlb_model_stacked %&gt;%
-  fit_members()</code></pre>
-<pre><code>## [20:24:32] WARNING: amalgamation/../src/learner.cc:573: 
-## Parameters: { &quot;importance&quot; } might not be used.
-## 
-##   This may not be accurate due to some parameters are only used in language bindings but
-##   passed down to XGBoost core.  Or some parameters are not used but slip through this
-##   verification. Please open an issue if you find above cases.
-## 
-## 
-## [20:24:32] WARNING: amalgamation/../src/learner.cc:573: 
-## Parameters: { &quot;importance&quot; } might not be used.
-## 
-##   This may not be accurate due to some parameters are only used in language bindings but
-##   passed down to XGBoost core.  Or some parameters are not used but slip through this
-##   verification. Please open an issue if you find above cases.
-## 
-## 
-## [20:24:32] WARNING: amalgamation/../src/learner.cc:573: 
-## Parameters: { &quot;importance&quot; } might not be used.
-## 
-##   This may not be accurate due to some parameters are only used in language bindings but
-##   passed down to XGBoost core.  Or some parameters are not used but slip through this
-##   verification. Please open an issue if you find above cases.
-## 
-## 
-## [20:24:33] WARNING: amalgamation/../src/learner.cc:573: 
-## Parameters: { &quot;importance&quot; } might not be used.
-## 
-##   This may not be accurate due to some parameters are only used in language bindings but
-##   passed down to XGBoost core.  Or some parameters are not used but slip through this
-##   verification. Please open an issue if you find above cases.</code></pre>
-<pre class="r"><code># get predictions based on member models
-member_preds &lt;- 
-  test_mlb %&gt;%
+  fit_members()
+
+# get predictions based on member models
+member_preds &lt;- test_mlb %&gt;%
   select(ops) %&gt;%
   bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
 
-# display results
-map_dfr(member_preds, rmse, truth = ops, data = member_preds) %&gt;%
+# store results
+results_ensemble &lt;- map_dfr(member_preds, rmse, truth = ops, data = member_preds) %&gt;%
   mutate(member = colnames(member_preds))</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":[".metric"],"name":[1],"type":["chr"],"align":["left"]},{"label":[".estimator"],"name":[2],"type":["chr"],"align":["left"]},{"label":[".estimate"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["member"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"rmse","2":"standard","3":"0.000000","4":"ops"},{"1":"rmse","2":"standard","3":"6.072493","4":".pred"},{"1":"rmse","2":"standard","3":"6.638819","4":"rf_tuned_1_25"},{"1":"rmse","2":"standard","3":"10.833742","4":"svm_res_1_15"},{"1":"rmse","2":"standard","3":"8.328967","4":"svm_res_1_20"},{"1":"rmse","2":"standard","3":"5.619599","4":"bt_tuned_1_112"},{"1":"rmse","2":"standard","3":"6.399123","4":"bt_tuned_1_122"},{"1":"rmse","2":"standard","3":"5.747905","4":"bt_tuned_1_119"},{"1":"rmse","2":"standard","3":"6.344408","4":"bt_tuned_1_124"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
-<p>From the testing data, a final RMSE score of 6.14 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.</p>
+<pre class="r"><code># print results
+print(results_ensemble)</code></pre>
+<pre><code>## # A tibble: 9 x 4
+##   .metric .estimator .estimate member        
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;         
+## 1 rmse    standard        0    ops           
+## 2 rmse    standard        6.06 .pred         
+## 3 rmse    standard        6.63 rf_tuned_1_25 
+## 4 rmse    standard       10.8  svm_res_1_15  
+## 5 rmse    standard        8.33 svm_res_1_20  
+## 6 rmse    standard        5.57 bt_tuned_1_112
+## 7 rmse    standard        6.33 bt_tuned_1_122
+## 8 rmse    standard        5.76 bt_tuned_1_119
+## 9 rmse    standard        6.38 bt_tuned_1_124</code></pre>
+<p>From the testing data, a final RMSE score of 6.055356 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.</p>
 <p>Additionally, below contains a script that finalizes, fits, and evaluates the neural network:</p>
 <pre class="r"><code># load tuned nnet 
 load(&quot;tuning_scripts/nnet_tuned.rda&quot;)
@@ -2222,10 +2204,10 @@ print(predicted_values)</code></pre>
 <pre><code>## # A tibble: 1 x 3
 ##   .metric .estimator .estimate
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
-## 1 rmse    standard        8.19</code></pre>
+## 1 rmse    standard        8.18</code></pre>
 <p>For the neural network, a final RMSE score of 8.257539 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data.</p>
 <p>–</p>
-<p>In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.14. As such, this project is deemed a success as a model was created that can reliably predict a player’s on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.</p>
+<p>In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.055356. As such, this project is deemed a success as a model was created that can reliably predict a player’s on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.</p>
 <p>In order to improve results, additional models could have been tested, including MARS and elastic net models. Creating an ensemble model from a greater selection of candidate models may also improve model performance compared to the results obtained above. Additionally, other steps in preprocessing could have been implemented such as Box-Cox transformations, which may yield better results. Finally, additional data to train on from perhaps previous years may have been helpful for further improving the model training processes.</p>
 </div>
 

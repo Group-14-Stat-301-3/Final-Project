@@ -183,7 +183,10 @@ Now that the best two models have been selected for final evaluation, in this se
 
 Below contains a script that fits and evaluates the ensemble model as well as its member models:
 
-```{r, warning = FALSE, message = FALSE, error=FALSE}
+```{r, warning = FALSE, message = FALSE, error=FALSE, results = "hide"}
+# set seed for reproducible results
+set.seed(9876)
+
 # load testing data
 test_mlb <- read_csv("data/testing_data_mlb.csv")
 
@@ -192,17 +195,22 @@ mlb_model_stacked_fitted <- mlb_model_stacked %>%
   fit_members()
 
 # get predictions based on member models
-member_preds <- 
-  test_mlb %>%
+member_preds <- test_mlb %>%
   select(ops) %>%
   bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
 
-# display results
-map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
+# store results
+results_ensemble <- map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
   mutate(member = colnames(member_preds))
 ```
 
-From the testing data, a final RMSE score of 6.14 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.
+```{r}
+# print results
+print(results_ensemble)
+```
+
+
+From the testing data, a final RMSE score of 6.055356 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.
 
 Additionally, below contains a script that finalizes, fits, and evaluates the neural network:
 
@@ -240,6 +248,6 @@ For the neural network, a final RMSE score of 8.257539 was obtained. As this sco
 
 --
 
-In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.14. As such, this project is deemed a success as a model was created that can reliably predict a player's on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.
+In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.055356. As such, this project is deemed a success as a model was created that can reliably predict a player's on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.
 
 In order to improve results, additional models could have been tested, including MARS and elastic net models. Creating an ensemble model from a greater selection of candidate models may also improve model performance compared to the results obtained above. Additionally, other steps in preprocessing could have been implemented such as Box-Cox transformations, which may yield better results. Finally, additional data to train on from perhaps previous years may have been helpful for further improving the model training processes. 
