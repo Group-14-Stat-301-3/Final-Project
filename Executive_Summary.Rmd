@@ -107,4 +107,4 @@ ggplot(test_mlb, aes(x = ops, y = .pred)) + geom_point() + theme_minimal() +
   )
 ```
 
-
+As all points appear to follow a one-to-one pattern, the plot visually verifies the efficacy of our model's predictive results. 
