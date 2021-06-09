@@ -160,7 +160,7 @@ With the recipe now constructed, models were constructed and fit onto the resamp
 # display data frame nicely containing relevant information from hyperparameter tunning process
 knitr::kable(data.frame(Model = c("Boosted Tree", "Random Forest", "Neural Network", "SVM RBF"),
                         Hyperparameters = c("mtry = 4, min_n = 40", "mtry = 10, min_n = 21", "hidden_units = 1, penalty = 1", "cost = 32, rbf_sigma = 0.003162278"),
-                        RMSE = c("8.949840", "8,431625", "8.254791", "8.731447")))
+                        RMSE = c("8.949840", "8.431625", "8.254791", "8.731447")))
 ```
 
 Of these four models, the neural network performed the best with a RMSE score of 8.254791 followed by random forest and support vector machine. This is not surpring as neural networks are state of the art models for many data science problems. As such, the neural network model will be chosen for evaluation on the testing dataset.
@@ -193,24 +193,22 @@ test_mlb <- read_csv("data/testing_data_mlb.csv")
 # fit to ensemble to entire training set 
 mlb_model_stacked_fitted <- mlb_model_stacked %>%
   fit_members()
+save(mlb_model_stacked_fitted, file = "tuning_scripts/mlb_model_stacked_fitted")
 
 # get predictions based on member models
-member_preds <- test_mlb %>%
+preds <- test_mlb %>%
   select(ops) %>%
-  bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
-
-# store results
-results_ensemble <- map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
-  mutate(member = colnames(member_preds))
+  bind_cols(predict(mlb_model_stacked_fitted, test_mlb)) %>%
+  rmse(.pred, ops)
 ```
 
 ```{r}
 # print results
-print(results_ensemble)
+print(preds)
 ```
 
 
-From the testing data, a final RMSE score of 6.055356 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.
+From the testing data, a final RMSE score of 6.055356 was obtained. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.  
 
 Additionally, below contains a script that finalizes, fits, and evaluates the neural network:
 
@@ -244,7 +242,7 @@ predicted_values <- predict(nnet_fitted, new_data = test_mlb, type = "numeric") 
 print(predicted_values)
 ```
 
-For the neural network, a final RMSE score of 8.257539 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data. 
+For the neural network, a final RMSE score of 8.17743 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data. 
 
 --
 

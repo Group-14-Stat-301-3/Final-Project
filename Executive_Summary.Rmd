@@ -16,9 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ### Data
-For this project, we chose to use a dataset of Major League Baseball batting statistics. This data has many advanced statistics for individual batters with at least 100 plate appearances in one season from the 2019-20 seasons.  Using these many advanced statistics, we chose to model the data treating OPS (On-base plus slugging percentage) as the outcome variable.  OPS is perhaps the most prominent statistic used in baseball as an all-encompassing representation of a batter's success.  By creating, tuning, and fitting models we hope to be able to accurately predict a player's OPS given his performance in various batted ball and plate discipline statistics.
 
-```{r, message=FALSE}
+For this project, we chose to use a dataset of Major League Baseball batting statistics. This data has many advanced statistics for individual batters with at least 100 plate appearances in one season from the 2019-20 seasons. Using these many advanced statistics, we chose to model the data treating OPS (On-base plus slugging percentage) as the outcome variable. OPS is perhaps the most prominent statistic used in baseball as an all-encompassing representation of a batter's success.  By creating, tuning, and fitting models we hope to be able to accurately predict a player's OPS given his performance in various batted ball and plate discipline statistics.
+
+```{r, message=FALSE, warning = FALSE}
 # loading packages and data
 library(tidyverse)
 library(tidymodels)
@@ -26,13 +27,18 @@ library(readr)
 library(ggplot2)
 library(psych)
 library(skimr)
+library(gt)
+
+# set seed for reproducible results
 set.seed(9876)
+
+# read in training data
 training_data_mlb <- read_csv('data/training_data_mlb.csv')
 ```
 
 
-### Brief Exploratory Data Analysis
-To better understand the data for our modeling, we want to get a sense of the distribution of our outcome variable, OPS, and of the relationships between our predictor variables.
+###  Exploratory Data Analysis
+To better understand the data for our modeling, we want to get a sense of the distribution of our outcome variable, OPS, and of the relationships between our predictor variables. The following graphs demonstrate the distribution of OPS and correlations between all predictors.
 
 ```{r}
 # see distribution of the response variable
@@ -46,19 +52,19 @@ ggplot(training_data_mlb, aes(x = ops)) +
 corrplot::corrplot(cor(training_data_mlb %>% select(-c(ops))), method = "circle", type = "upper")
 ```
 
-From the first plot we can see that OPS is centered near 75 and that most players have OPS' between 60 and 90.
+From the first plot we can see that OPS is centered near 75 and that most players have OPS' between 60 and 90. As such, the distribution is relatively symmetric, indicating that transformations of the outcome variable is unnecessary. 
 
-The second plot shows us that contact rate and swing-and-miss rate are so highly correlated that we should probably remove one from our models to avoid colinearity.
+The second plot shows us that contact rate and swing-and-miss rate are so highly correlated. In order to avoid potential issues with collinearity, we chose to remove oz_swing_miss_pct and z_swing_miss_pct from the data set prior to training models. 
 
 <br>
 
 ### Fitting an Ensemble Model
-After splitting and folding the data and feature engineering, we chose to tune Random Forest, Boosted Tree, Support Vector Machine, and Neural Net models, and to create an ensemble model of our RF, BT, and SVM models.  The following table shows the weights of different models in the final ensemble:
+
+After splitting and folding the data and feature engineering, we chose to tune Random Forest, Boosted Tree, Support Vector Machine, and Neural Net models, and to create an ensemble model of our RF, BT, and SVM models.  The following table shows the weights of different models in the final ensemble model:
 
 ```{r}
 # creating table of model weights
 load(file = "tuning_scripts/mlb_model_stacked")
-library(gt)
 stacks:::top_coefs(mlb_model_stacked) %>%
 gt() %>%
 tab_header(title = "Weights for Member Models in Ensemble Model") %>%
@@ -68,31 +74,29 @@ fmt_number(columns = c(weight), decimals = 3)
 <br>
 
 ### Ensemble Model Results
-With the ensemble model, we then fit the model to the test data. Below are the RMSE results for each model in the ensemble and the total ensemble model when fit to the testing data.
+Once the ensemble model was constructed, we then fit the model to the test data. Below are the RMSE results for each model in the ensemble and the total ensemble model when fit to the testing data.
 
 ```{r, message=FALSE}
-# loading ensemble model and test data
+# load ensemble model blended file
 load(file = "tuning_scripts/mlb_model_stacked_fitted")
 test_mlb <- read_csv("data/testing_data_mlb.csv")
 test_mlb <- test_mlb %>%
   bind_cols(predict(mlb_model_stacked_fitted, .))
+
 # creating table of performance
 member_preds <- 
   test_mlb %>%
   select(ops) %>%
-  bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
-map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
-  mutate(model = colnames(member_preds)) %>%
-  filter(model != "ops") %>%
-  arrange(.estimate) %>%
-  select(.estimate, model) %>%
+  bind_cols(predict(mlb_model_stacked_fitted, test_mlb)) %>%
+  rmse(.pred, ops) %>%
   gt() %>%
-  tab_header(title = "RMSE Values for Various Model Types") %>%
+  tab_header(title = "RMSE Score for the Ensemble Model") %>%
   fmt_number(columns = c(.estimate), decimals = 3)
+member_preds
 ```
 
 
-From these results we see that our ensemble model performed better than any of its member models! To illustrate just how well it performed, below is a plot of the ensemble model's predictions against the actual OPS' in the test data:
+With an RMSE value of 6.055, the results suggest strong predictive power of our ensemble model. Therefore, we have demonstrated the efficacy of our modeling approaches on predicting OPS. To illustrate just how well it performed, below is a plot of the ensemble model's predictions against the actual OPS' in the test data:
 
 ```{r}
 # plot predicted vs observed
