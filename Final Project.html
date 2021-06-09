@@ -2112,7 +2112,7 @@ mlb_recipe &lt;- recipe(ops ~ ., data = train_mlb) %&gt;%
 <tr class="even">
 <td align="left">Random Forest</td>
 <td align="left">mtry = 10, min_n = 21</td>
-<td align="left">8,431625</td>
+<td align="left">8.431625</td>
 </tr>
 <tr class="odd">
 <td align="left">Neural Network</td>
@@ -2149,30 +2149,20 @@ test_mlb &lt;- read_csv(&quot;data/testing_data_mlb.csv&quot;)
 # fit to ensemble to entire training set 
 mlb_model_stacked_fitted &lt;- mlb_model_stacked %&gt;%
   fit_members()
+save(mlb_model_stacked_fitted, file = &quot;tuning_scripts/mlb_model_stacked_fitted&quot;)
 
 # get predictions based on member models
-member_preds &lt;- test_mlb %&gt;%
+preds &lt;- test_mlb %&gt;%
   select(ops) %&gt;%
-  bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
-
-# store results
-results_ensemble &lt;- map_dfr(member_preds, rmse, truth = ops, data = member_preds) %&gt;%
-  mutate(member = colnames(member_preds))</code></pre>
+  bind_cols(predict(mlb_model_stacked_fitted, test_mlb)) %&gt;%
+  rmse(.pred, ops)</code></pre>
 <pre class="r"><code># print results
-print(results_ensemble)</code></pre>
-<pre><code>## # A tibble: 9 x 4
-##   .metric .estimator .estimate member        
-##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;         
-## 1 rmse    standard        0    ops           
-## 2 rmse    standard        6.06 .pred         
-## 3 rmse    standard        6.63 rf_tuned_1_25 
-## 4 rmse    standard       10.8  svm_res_1_15  
-## 5 rmse    standard        8.33 svm_res_1_20  
-## 6 rmse    standard        5.57 bt_tuned_1_112
-## 7 rmse    standard        6.33 bt_tuned_1_122
-## 8 rmse    standard        5.76 bt_tuned_1_119
-## 9 rmse    standard        6.38 bt_tuned_1_124</code></pre>
-<p>From the testing data, a final RMSE score of 6.055356 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.</p>
+print(preds)</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard        6.06</code></pre>
+<p>From the testing data, a final RMSE score of 6.055356 was obtained. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.</p>
 <p>Additionally, below contains a script that finalizes, fits, and evaluates the neural network:</p>
 <pre class="r"><code># load tuned nnet 
 load(&quot;tuning_scripts/nnet_tuned.rda&quot;)
@@ -2205,7 +2195,7 @@ print(predicted_values)</code></pre>
 ##   .metric .estimator .estimate
 ##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
 ## 1 rmse    standard        8.18</code></pre>
-<p>For the neural network, a final RMSE score of 8.257539 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data.</p>
+<p>For the neural network, a final RMSE score of 8.17743 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data.</p>
 <p>–</p>
 <p>In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.055356. As such, this project is deemed a success as a model was created that can reliably predict a player’s on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.</p>
 <p>In order to improve results, additional models could have been tested, including MARS and elastic net models. Creating an ensemble model from a greater selection of candidate models may also improve model performance compared to the results obtained above. Additionally, other steps in preprocessing could have been implemented such as Box-Cox transformations, which may yield better results. Finally, additional data to train on from perhaps previous years may have been helpful for further improving the model training processes.</p>
