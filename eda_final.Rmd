@@ -1,5 +1,5 @@
 ---
-title: "Exploratory Data Analysis - Group 14"
+title: "Final Project - Predicting Baseball Players' Offensive Capabilities"
 author: "Albert Kim, Jordi Parry, Zachary Kornbluth"
 subtitle: "STAT 301-3"
 output:
@@ -7,57 +7,79 @@ output:
     df_print: paged
     code_folding: hide
 ---
-```{r, echo = FALSE, warning = FALSE, message=FALSE}
-library(tidyverse)
-library(tidymodels)
-library(readr)
-library(ggplot2)
-library(psych)
-library(skimr)
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
 
-```{r, message=FALSE, eval = FALSE}
+```{r, message=FALSE, eval = TRUE, echo = FALSE, include=FALSE, message = FALSE}
 library(tidyverse)
 library(tidymodels)
 library(readr)
 library(ggplot2)
 library(psych)
+library(stacks)
 library(skimr)
-
-# read in data set
-mlb_data <- read.table('mlb_data.txt', header = TRUE, sep = " ") %>%
-  subset(select = -c(name, year, b_total_pa, xops, xba, xslg, xwoba, xobp, xiso))
-
-# set seed for reproducing data
-set.seed(123)
-
-# initial split of training-testing set.
-mlb_split <- initial_split(mlb_data, 0.75, strata = ops)
-training_mlb <- training(mlb_split)
-testing_mlb <- testing(mlb_split)
-
-# save training set which will be used for future analyses
-write_csv(training_mlb, "training_data_mlb.csv")
 ```
 
 ## Introduction 
+
 With the vastly available data sources today, data science and analytics are gaining traction throughout multiple fields and studies, leading to new technological applications unseen before in any aspect of human history. One such example is in one of America's favorite sports-- baseball-- where data science is used to guide processes such as custom training regiment constructions and rookie scouting. 
 
 As fans of baseball, our team decided to analyze MLB data during the 2019-2020 season with the hopes of predicting players' on base plus slugging percentage which is the industry standard for measuring players' offensive capabilities. This will be done by building, testing, and fine-tuning models based on players' physical measures such as spring speed and arm strength. Given high efficacy, the final model built may serve as a useful tool for coaches and admins alike for scouting new players as well as measuring the strengths and weaknesses of current players. 
 
-The data was acquired from the mlb.com site 'Baseball Savant' and its custom leaderboard feature, where certain features were removed for the purpose of modeling including player names and statistics that are used in formulas for other features. It i
-
-In the following sections, an exploratory data analysis will be conducted prior to model building in order to note interesting relationships and potential issues within the data. This will be done by skimming through the data set to denote basic aspects of the dataset such as number of predictors, observations, and missingness followed by data visualizations of predictor-response variable relationships.  
-
 This dataset consists of batting statistics of MLB player seasons of players with at least 100 plate appearances during the 2019 and  2020 seasons. It is important to note that observations may not encapsulate all baseball players part of a MLB team as observations were only recorded for players with at least 100 plate appearances. 
 
-## Initial Overview of the Data
+## Overview of the Report
+
+In the following sections, a data science pipeline will be constructed using the MLB player data. First, an exploratory data analysis will be conducted prior to model building in order to note interesting relationships and potential issues within the data. This will be done by skimming through the data set to denote basic aspects of the dataset such as number of predictors, observations, and missingness followed by data visualizations of predictor-response variable relationships.  
+
+After, a recipe will be constructed, preprocessing the data based on findings from the exploratory data analysis. A resampling object, notable repeated v-fold cross validation, will be instantiated for model training in order to ensure model generalizability and to test different hyperparameter combinations for the models.
+
+From here, the models and their relevant workflows will be defined, tuned, and analyzed. Specifically, the following models will be tested: random forest, boosted tree, support vector machine (radial basis), neural network, and ensemble model (from random forest, boosted tree, and support vector machine). The best two models will then be selected and fitted onto the entire training data set where final RMSE scores will be derived from the testing dataset.  
+
+## Data Splitting
+
+Prior to conducting any analyses, the dataset will be intialized and partitioned into designated training and testing data. The training dataset will be used for the subsequent analyses whereas the testing data will be used at the end to evaluate the efficacy of the final, chosen model. 
+
+The script for data splitting is provided below. A 75-25 percent training-testing partition was chosen corresponding to 573 observations in the training data set and 188 observations in the testing data set. This specific ratio ensures that there are sufficient number of observations for both training and evaluating models. Additionally, the split is based on stratification of the response vaiable ops (on base plus slugging percentage). This guarantees a relatively balanced distribution of response variable values in both datasets to prevent potential biases in model training. 
+
+```{r, message = FALSE}
+# read in data set and remove name and derived statistics
+mlb_data <- read.table('data/mlb_data.txt', header = TRUE, sep = " ") %>%
+  subset(select = -c(name, year, b_total_pa, xops, xba, xslg, xwoba, xobp, xiso))
+
+# set seed for reproducing data split
+set.seed(123)
+
+# initial split of training-testing set.
+mlb_split <- initial_split(mlb_data, 0.75, strata = ops)
+train_mlb <- training(mlb_split)
+test_mlb <- testing(mlb_split)
+
+# save training and testing sets 
+write_csv(train_mlb, "data/training_data_mlb.csv")
+write_csv(test_mlb, "data/testing_data_mlb.csv")
+```
+
+In addition, a resampling object is created from the training data. Specifically, a 3-repeat-5 fold cross validation set is defined. This is important during the model training process as it prevents overfitting and encourages generalizability by defining different combinations of training data to build models from. The code for this is shown below:
+
+```{r, eval = FALSE}
+# set seed for reproducibility
+set.seed(2025)
+
+# define validation 
+mlb_folds <- vfold_cv(data = mlb_train, v = 5, repeats = 3, strata = ops)
+```
+
+## Exploratory Data Analysis
+
+In this section, the exploratory data analysis will be conducted on the training data set.
 
 Below is a basic skim of the constructed training data set: 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 # load data
-training_data_mlb <- read_csv('training_data_mlb.csv')
+training_data_mlb <- read_csv('data/training_data_mlb.csv')
 
 # skim training data 
 skim_without_charts(training_data_mlb)
@@ -65,9 +87,10 @@ skim_without_charts(training_data_mlb)
 
 From these results, there are 15 numeric variables contained in the training data set with 14 predictors and 1 response variable: ops (on-base plus slugging). As we are attempting to predict a quantitative variable, the machine learning problem is regressive by nature. 
 
-Additionally, the training data set contains 573 total player observations out of 761 total observations corresponding to a 80 percent initial split. Interestingly enough, there are no corresponding missing data for any of the predictors which indicates that missingness is not a problem to tackle during the recipe construction process of model building. 
+Interestingly enough, there are no corresponding missing data for any of the predictors which indicates that missingness is not a problem to tackle during the recipe construction process of model building. 
 
-## Essential Findings
+
+#### Findings
 
 In the following section, data visualization will be used in order to explore relationships between predictors and the response variable ops. 
 
@@ -93,7 +116,7 @@ Above include two plots that summarize outcome-predictor relationships and predi
 
 From the first graph, it is evident that some predictors notably b_bb_pct, barrel_batted_rate, exit_velocity_avg, and hard_hit_pct have relatively strong associations with the outcome variable. As all of these measures capture different aspects of a player's offensive skill, it is not surprising that they are associated with the OPS outcome variable considering the OPS score is considered as an overall measure of offensive capabilities. On the other hand, other variables such as player age did not have any noticeably associations with the response variable as hypothesized. 
 
-On the second graph, the distributions of predictor variables were explored in order to see if any preprocessing would be required prior to the model buildging process. From above, most predictors appear to be relatively symmetric with the exception of b_bb_pct, barrel_batted_rate, launch_angle_avg, and oz_contact_pct. Although not very extreme, it may be useful to apply log transformations or other methods such as Box-Cox or Yeo-Johnson transformations to account for this skewness.
+On the second graph, the distributions of predictor variables were explored in order to see if any preprocessing would be required prior to the model building process. From above, most predictors appear to be relatively symmetric with the exception of b_bb_pct, barrel_batted_rate, and oz_contact_pct. Although not very extreme, it may be useful to apply log transformations or other methods such as Box-Cox or Yeo-Johnson transformations to account for this skewness.
 
 ```{r}
 # see distribution of the response variable
@@ -109,36 +132,114 @@ corrplot::corrplot(cor(training_data_mlb %>% select(-c(ops))), method = "circle"
  
 The plots above summarize the distribution of the response variable as well as correlations between predictors. 
 
-The above density plot displays the general distribution of the response variable, ops. The distribution apopears to be fairly symmetrical with a center approximately around 74 where the bulk of data is contained within 60 and 90 percent. Without any extreme skewness or other problematic patterns, this plot suggests that additional preprocessing such as log transformations may not be necessary for the response variable moving forward with the model building process. 
+The above density plot displays the general distribution of the response variable, ops. The distribution appears to be fairly symmetrical with a center approximately around 74 where the bulk of data is contained within 60 and 90 percent. Without any extreme skewness or other problematic patterns, this plot suggests that additional preprocessing such as log transformations may not be necessary for the response variable moving forward with the model building process. 
 
 Addressing the correlation plot, there appears to be a couple of strong associations between pairs of certain predictors. In particular, iz_contact_pct/z_swing_miss_pct and oz_contact_pct/oz_swing_miss_pct have near one-to-one correlations, which suggest that there is redundant information in these pairs. As such, oz_swing_miss_pct and z_swing_miss_pct will be removed from the data in order to correct potential collinearity issues during the model building process.
 
-### Secondary Findings
 
-Below contains some additional secondary findings of lesser importance but still nonetheless interesting. 
-Some potential extraneous predictors that might still have relevance - in zone contact, solid contact, barrels
+## Feature Extraction
+Now that the exploratory data analysis has been conducted, a recipe will be constructed with feature extraction to address concerns brought up from the EDA. 
 
-One such variable is the average launch angle variable, which describes the angle at which a ball flies upon being hit at bat.
+To begin, the target variable `ops` and all predictors were added onto the recipe. As noted in the EDA, there are a few variables that are highly correlated with one another. In order to preemptively address potential problems with collinearity, the correlated variables `z_swing_miss_pct` and `oz_swing_miss_pct` are removed from the dataset. In addition, given the skewness noticed in `b_bb_pct`, `barrel_batted_rate`, and `oz_contact_pct`, these variables are log transformed to ensure more symmetric distributions. An offset of `1e-16` was included to handle values of 0 in variables, which was noted in `barrel_batted_rate`. Finally, all predictors were normalized to account for differences in predictor scale. 
+
+The code for recipe construction is shown below:
+
 ```{r}
-# five variable stats for launch angle average
-describe(training_data_mlb$launch_angle_avg)
+# recipe construction
+mlb_recipe <- recipe(ops ~ ., data = train_mlb) %>%
+  step_rm(z_swing_miss_pct, oz_swing_miss_pct) %>%
+  step_log(b_bb_pct, barrel_batted_rate, oz_contact_pct, offset = 1e-16) %>%
+  step_normalize(all_predictors())
 ```
 
-It is interesting to note that there are launch angles recorded below 0 degrees, most likely due to some players hitting closer to the ground on average. Additionally, there are few launch angles above 20 degrees, which is lower than expected considering that the kinematic ideal is 45 degrees. This is most likely due to air resistance and other factors that make 45 degrees unfeasible in baseball. 
+## Model Fitting 
 
-Another variable of note is iz_contact_pct which measures the percentage of pitches hit in the strike zone. 
-```{r}
-# summary of iz_contact_pct
-training_data_mlb %>% select(iz_contact_pct) %>% 
-  summary()
+With the recipe now constructed, models were constructed and fit onto the resampled data, where hyperparameter performance was evaluated. The relevant code for this process can be found in the tuning_scripts folder. The following table summarizes the performance of all models tested:
+
+```{r, echo = FALSE}
+# display data frame nicely containing relevant information from hyperparameter tunning process
+knitr::kable(data.frame(Model = c("Boosted Tree", "Random Forest", "Neural Network", "SVM RBF"),
+                        Hyperparameters = c("mtry = 4, min_n = 40", "mtry = 10, min_n = 21", "hidden_units = 1, penalty = 1", "cost = 32, rbf_sigma = 0.003162278"),
+                        RMSE = c("8.949840", "8,431625", "8.254791", "8.731447")))
 ```
 
-For this variable, it is unsurprising to note that most players are able to hit between 70 and 90 percent of pitches within the strike zone, considering that this is MLB level talent. However, it is nonetheless interesting that there are still some outliers with players hitting even as low as 63.9 percent. It may be important to keep in mind the potential influence that such observations may have during the model construction process in later analyses. 
+Of these four models, the neural network performed the best with a RMSE score of 8.254791 followed by random forest and support vector machine. This is not surpring as neural networks are state of the art models for many data science problems. As such, the neural network model will be chosen for evaluation on the testing dataset.
 
-## Conclusion
+Additionally, an ensemble model was constructed using boosted tree, random forest, and support vector machines as the components. The neural network model was not chosen due to issues in R that prevented the addition of the neural network onto the ensemble model. The results after blending is shown below:
 
-From the above exploratory data analysis, relationships between predictors and response variables were analyzed where interesting aspects were noted for potential preprocessiong prior to additional analyses. This included adjustments such as log or Box-Cox transformations for variables with substantial skewness such as barrel_batted_rate. Additionally, highly correlated variables were discovered such as iz_contact_pct/z_swing_miss_pct. In order to adjust for this, it was decided to remove some predictors prior to final model building, notably oz_swing_miss_pct and z_swing_miss_pct. 
+```{r}
+# load ensemble model blended file
+load(file = "tuning_scripts/mlb_model_stacked" )
 
-Now that the exploratory data analysis has been performed, the model building process will now begin where recipe construction with feature engineering will be tackled next. From this, hyperparameter grids and metrics will be chosen to search for the best model, where a final model will be chosen from the tuning process to construct the final model.
+# plot tuning graphs
+autoplot(mlb_model_stacked)
+```
 
+With a RMSE value of 8.394 at the best blended combination, the ensemble model outperformed each of its candidate models. As such, it will also be chosen for evaluation on the testing data set. 
 
+## Model Evaluation and Conclusion
+
+Now that the best two models have been selected for final evaluation, in this section, the neural network and ensemble model will be evaluated on the testing data set. 
+
+Below contains a script that fits and evaluates the ensemble model as well as its member models:
+
+```{r, warning = FALSE, message = FALSE, error=FALSE}
+# load testing data
+test_mlb <- read_csv("data/testing_data_mlb.csv")
+
+# fit to ensemble to entire training set 
+mlb_model_stacked_fitted <- mlb_model_stacked %>%
+  fit_members()
+
+# get predictions based on member models
+member_preds <- 
+  test_mlb %>%
+  select(ops) %>%
+  bind_cols(predict(mlb_model_stacked_fitted, test_mlb, members = TRUE))
+
+# display results
+map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
+  mutate(member = colnames(member_preds))
+```
+
+From the testing data, a final RMSE score of 6.14 was obtained, outperforming all of the other member models that comprises it. As this score is very low, the evidence supports the efficacy of the ensemble model as a strong, reliable predictor of the on-base-plus-slugging percentage in baseball.
+
+Additionally, below contains a script that finalizes, fits, and evaluates the neural network:
+
+```{r}
+# load tuned nnet 
+load("tuning_scripts/nnet_tuned.rda")
+
+#nnet model
+nnet_model <- mlp(hidden_units = tune(),
+                  penalty = tune()) %>%
+  set_engine("nnet", trace = 0) %>%
+  set_mode("regression")
+
+# neural net workflow
+nnet_workflow <- workflow() %>%
+  add_model(nnet_model) %>%
+  add_recipe(mlb_recipe)
+
+# finalize workflow
+nnet_workflow_final <- nnet_workflow %>%
+  finalize_workflow(select_best(nnet_tuned, metric = "rmse"))
+
+# fit onto training data
+nnet_fitted <- fit(nnet_workflow_final, training_data_mlb)
+
+# get predictions
+predicted_values <- predict(nnet_fitted, new_data = test_mlb, type = "numeric") %>%
+  bind_cols(test_mlb %>% select(ops)) %>%
+  rmse(.pred, ops)
+
+print(predicted_values)
+```
+
+For the neural network, a final RMSE score of 8.257539 was obtained. As this score is higher than that of the ensemble model, the ensemble model is deemed as the stronger predictive model for this data. 
+
+--
+
+In conclusion, the ensemble model comprising of member functions from random forest, boosted tree, and support vector machine models had the strongest predictive power with the testing RMSE score of 6.14. As such, this project is deemed a success as a model was created that can reliably predict a player's on base plus slugging percentage, therefore demonstrating the potential applications of data science into sports with the greater availability of data during the modern age.
+
+In order to improve results, additional models could have been tested, including MARS and elastic net models. Creating an ensemble model from a greater selection of candidate models may also improve model performance compared to the results obtained above. Additionally, other steps in preprocessing could have been implemented such as Box-Cox transformations, which may yield better results. Finally, additional data to train on from perhaps previous years may have been helpful for further improving the model training processes. 

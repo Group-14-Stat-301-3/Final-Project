@@ -1,0 +1,41 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Oblique;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Codebook for mlbadvanced.txt dataset\
+\
+name: name of player\
+year: the year of the season the statistics are from\
+player_age: the age of the player on June 30th of the season in question\
+b_total_pa: the number of plate appearances the player had, times they came to bat\
+b_k_pct: the percent of plate appearances in which the player struck out\
+b_bb_pct: the percent of plate appearances in which the player walked\
+ops: \'91on base plus slugging\'92; the percent of plate appearances in which the player reached base 
+\f1\i plus
+\f0\i0  the player\'92s total bases per at bat\
+xops: a player\'92s xobp 
+\f1\i plus
+\f0\i0  their xslg\
+xba: the likelihood that a player\'92s batted ball becomes a hit\
+xslg: a player\'92s expected slugging percentage (total bases / at bats) based on their batted ball data\
+xwoba: expected weighted on base average, formulated using exit velocity and launch angles of batted balls\
+xobp: a player\'92s expected on base percentage (times reached base / plate appearances) based on their batted ball data\
+xiso: expected isolated power, xslg - xba\
+exit_velocity_avg: average velocity in miles per hour a player hit the ball\
+launch_angle_avg: average of how high/low, in degrees, a player hit the ball\
+barrel_batted_rate: percent of batted balls that were \'91barrels\'92, hit with the perfect combination of exit velocity and launch angle (at least 98 mph, launch angles vary)\
+solidcontact_pct: percent of batted balls that fall just short of being listed as barrels\
+hard_hit_pct: percent of batted balls with an exit velocity of 95 mph or higher\
+z_swing_pct: percent of pitches inside the strike zone that the batter swung at\
+z_swing_miss_pct: percent of pitches in the strike zone that the batter swung at that they did not make contact with\
+oz_swing_pct: percent of pitches outside of the strike zone that the batter swung at\
+oz_swing_miss_pct: percent of pitches outside of the strike zone that the batter swung at that they did not make contact with\
+oz_contact_pct: percent of pitches outside of the strike zone that the batter swung at that they made contact with\
+iz_contact_pct: percent of pitches in the strike zone that the batter swung at that they made contact with\
+\
+Notes:\
+Dataset downloaded from https://baseballsavant.mlb.com/leaderboard/custom?year=2020,2019&type=batter&filter=&sort=4&sortDir=desc&min=100&selections=player_age,b_total_pa,b_k_percent,b_bb_percent,on_base_plus_slg,xba,xslg,xwoba,xobp,xiso,exit_velocity_avg,launch_angle_avg,barrel_batted_rate,solidcontact_percent,hard_hit_percent,z_swing_percent,z_swing_miss_percent,oz_swing_percent,oz_swing_miss_percent,oz_contact_percent,iz_contact_percent,&chart=false&x=xba&y=xba&r=no&chartType=beeswarm\
+}
