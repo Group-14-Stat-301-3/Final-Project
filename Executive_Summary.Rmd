@@ -27,7 +27,7 @@ library(ggplot2)
 library(psych)
 library(skimr)
 set.seed(9876)
-training_data_mlb <- read_csv('training_data_mlb.csv')
+training_data_mlb <- read_csv('data/training_data_mlb.csv')
 ```
 
 
@@ -57,12 +57,12 @@ After splitting and folding the data and feature engineering, we chose to tune R
 
 ```{r}
 # creating table of model weights
-load(file = "mlb_model_stacked")
+load(file = "tuning_scripts/mlb_model_stacked")
 library(gt)
 stacks:::top_coefs(mlb_model_stacked) %>%
 gt() %>%
 tab_header(title = "Weights for Member Models in Ensemble Model") %>%
-fmt_number(columns = vars(weight), decimals = 3)
+fmt_number(columns = c(weight), decimals = 3)
 ```
 
 <br>
@@ -72,8 +72,8 @@ With the ensemble model, we then fit the model to the test data. Below are the R
 
 ```{r, message=FALSE}
 # loading ensemble model and test data
-load(file = "mlb_model_stacked_fitted")
-test_mlb <- read_csv("testing_data_mlb.csv")
+load(file = "tuning_scripts/mlb_model_stacked_fitted")
+test_mlb <- read_csv("data/testing_data_mlb.csv")
 test_mlb <- test_mlb %>%
   bind_cols(predict(mlb_model_stacked_fitted, .))
 # creating table of performance
@@ -88,7 +88,7 @@ map_dfr(member_preds, rmse, truth = ops, data = member_preds) %>%
   select(.estimate, model) %>%
   gt() %>%
   tab_header(title = "RMSE Values for Various Model Types") %>%
-  fmt_number(columns = vars(.estimate), decimals = 3)
+  fmt_number(columns = c(.estimate), decimals = 3)
 ```
 
 
